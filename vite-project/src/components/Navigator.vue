@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { ref } from "vue";
+import { useAuth } from "../stores/auth";
 import type { MenuItem } from "../types/menu";
 import SubMenu from "./SubMenu.vue";
+
+const auth = useAuth();
 
 const items = ref<MenuItem[]>([
   { name: "dashboard", label: "Dashboard", to: "/", icon: "mdi:view-dashboard-outline" },
@@ -25,11 +28,7 @@ const items = ref<MenuItem[]>([
     subPage: [
       { name: "ep-home", label: "Epanet Demo", to: "/epanet" },
       { name: "ep-model", label: "Model View", to: "/epanet/model" },
-      {
-        name: "ep-default",
-        label: "Default View",
-        to: "/epanet/default",
-      },
+      { name: "ep-default", label: "Default View", to: "/epanet/default" },
     ],
   },
 
@@ -73,12 +72,27 @@ const items = ref<MenuItem[]>([
     icon: "mdi:folder-outline",
     subPage: [{ name: "auto-page3", label: "Auto Dynamic Page3", to: "/dynamic/page3" }],
   },
-  { name: "marah", label: "marah", icon: "mdi:account", subPage: [] },
+
+  // ✅ “marah” now includes logout as special action
+  {
+    name: "marah",
+    label: "marah",
+    icon: "mdi:account",
+    subPage: [
+      { name: "logout", label: "Logout", to: "/logout" }, // handled manually
+    ],
+  },
+
   { name: "settings", label: "Settings", to: "/settings", icon: "mdi:cog" },
   { name: "faq", label: "FAQ", to: "/faq", icon: "akar-icons:chat-question" },
 ]);
 
 const collapsed = ref(false);
+
+// ✅ Central logout function
+const handleLogout = () => {
+  auth.logout();
+};
 </script>
 
 <template>
@@ -91,13 +105,13 @@ const collapsed = ref(false);
     <!-- Header -->
     <div class="flex items-center gap-3 px-4 py-3">
       <img src="/flowless.png" alt="flowless" class="h-7 w-7" />
-      <span v-if="!collapsed" class="text-2xl font-semibold text-[#1f6fb6]"> flowless </span>
+      <span v-if="!collapsed" class="text-2xl font-semibold text-[#1f6fb6]">flowless</span>
       <button
         class="ml-auto text-gray-500 hover:text-gray-700"
         @click="collapsed = !collapsed"
         :title="collapsed ? 'Expand' : 'Collapse'"
       >
-        <span class="text-xl"> {{ collapsed ? "»" : "«" }} </span>
+        <span class="text-xl">{{ collapsed ? "»" : "«" }}</span>
       </button>
     </div>
 
@@ -107,25 +121,39 @@ const collapsed = ref(false);
     <nav class="overflow-y-auto px-3 pb-4 flex-1">
       <ul class="space-y-1">
         <li v-for="item in items" :key="item.name">
-          <SubMenu :item="item" :collapsed="collapsed" />
+          <!-- 👇 Pass logout handler down -->
+          <SubMenu :item="item" :collapsed="collapsed" @logout="handleLogout" />
         </li>
       </ul>
     </nav>
-
     <!-- Footer -->
-    <div v-if="!collapsed" class="px-4 py-3 border-t border-gray-200 bg-white">
-      <div class="flex items-center gap-3">
+    <div class="mt-auto px-4 py-3 border-gray-200 bg-white flex items-center justify-between">
+      <div
+        class="flex items-center gap-3 overflow-hidden transition-all"
+        :class="{ 'justify-center': collapsed }"
+      >
+        <!-- Avatar -->
         <div
-          class="h-10 w-10 rounded-full bg-[#e9f1fb] grid place-items-center text-[#2d6bbb] font-semibold"
+          class="h-10 w-10 rounded-full bg-[#e9f1fb] grid place-items-center text-[#2d6bbb] font-semibold flex-shrink-0"
         >
           FR
         </div>
-        <div>
-          <div class="font-semibold text-gray-900">Front end</div>
+
+        <!-- Text (hide when collapsed) -->
+        <div v-if="!collapsed" class="flex flex-col">
+          <div class="font-semibold">Front end</div>
           <div class="text-sm text-gray-500">Front end</div>
         </div>
-        <Icon icon="mdi:logout" class="ml-auto w-5 h-5 text-gray-500 hover:text-[#1f6fb6]" />
       </div>
+
+      <!-- Logout icon -->
+      <button
+        @click.stop="auth.logout()"
+        title="Logout"
+        class="text-gray-500 hover:text-[#1f6fb6] ml-auto"
+      >
+        <Icon icon="mdi:logout" class="w-5 h-5" />
+      </button>
     </div>
   </aside>
 </template>

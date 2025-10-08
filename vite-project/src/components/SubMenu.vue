@@ -3,6 +3,9 @@ import type { MenuItem } from "@/types/menu";
 import { Icon } from "@iconify/vue";
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
+import { useAuth } from "../stores/auth";
+
+const auth = useAuth();
 
 const props = defineProps<{
   item: MenuItem;
@@ -57,7 +60,7 @@ onMounted(() => {
       <span v-if="!collapsed" class="text-gray-500">▸</span>
     </button>
 
-    <!-- Inline submenu (expanded) -->
+    <!-- Inline submenu (expanded sidebar) -->
     <div
       v-if="!collapsed && item.subPage?.length"
       class="overflow-hidden transition-all"
@@ -65,7 +68,18 @@ onMounted(() => {
     >
       <ul class="pl-12 pr-3 py-2 space-y-3">
         <li v-for="s in item.subPage" :key="s.name">
+          <!-- ✅ Handle logout -->
+          <button
+            v-if="s.to === '/logout'"
+            @click="auth.logout()"
+            class="block w-full text-left rounded px-3 py-2 hover:bg-gray-50 text-[#1f6fb6]"
+          >
+            {{ s.label }}
+          </button>
+
+          <!-- ✅ Normal submenu links -->
           <RouterLink
+            v-else
             :to="s.to"
             class="flex items-center gap-2 rounded px-2 py-2 hover:bg-gray-50 transition-colors"
             :class="[{ 'text-[#1f6fb6] font-medium': route.path === s.to }]"
@@ -79,10 +93,10 @@ onMounted(() => {
           </RouterLink>
         </li>
       </ul>
-      <div class="mx-5 border-b" />
+      <div v-if="item.subPage?.length > 1" class="mx-5 border-b" />
     </div>
 
-    <!-- Fly-out submenu (collapsed) -->
+    <!-- Fly-out submenu (collapsed sidebar) -->
     <div
       v-if="collapsed && item.subPage?.length"
       class="absolute left-full top-0 ml-2 hidden min-w-[220px] rounded-lg border bg-white p-2 shadow-lg group-hover:block"
@@ -90,7 +104,16 @@ onMounted(() => {
       <div class="px-3 py-2 font-semibold text-gray-700">{{ item.label }}</div>
       <ul class="space-y-1">
         <li v-for="s in item.subPage" :key="s.name">
+          <!-- ✅ Keep v-if / v-else pair together -->
+          <button
+            v-if="s.to === '/logout'"
+            @click="auth.logout()"
+            class="block w-full text-left rounded px-3 py-2 hover:bg-gray-50 text-[#1f6fb6]"
+          >
+            {{ s.label }}
+          </button>
           <RouterLink
+            v-else
             :to="s.to"
             class="block rounded px-2 py-2 hover:bg-gray-50"
             :class="[{ 'text-[#1f6fb6] font-medium': route.path === s.to }]"
