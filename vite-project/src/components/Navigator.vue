@@ -10,7 +10,6 @@ const auth = useAuth();
 const items = ref<MenuItem[]>([
   { name: "dashboard", label: "Dashboard", to: "/", icon: "mdi:view-dashboard-outline" },
   { name: "water", label: "Water Quality", to: "/water", icon: "mdi:water-outline" },
-
   {
     name: "control",
     label: "Control center",
@@ -20,7 +19,6 @@ const items = ref<MenuItem[]>([
       { name: "valves", label: "Valves", to: "/control/valves" },
     ],
   },
-
   {
     name: "epanet",
     label: "Epanet Demo",
@@ -31,7 +29,6 @@ const items = ref<MenuItem[]>([
       { name: "ep-default", label: "Default View", to: "/epanet/default" },
     ],
   },
-
   {
     name: "alerts",
     label: "Alerts",
@@ -41,7 +38,6 @@ const items = ref<MenuItem[]>([
       { name: "history", label: "History", to: "/alerts/history" },
     ],
   },
-
   { name: "zones", label: "Zones", icon: "bx:shape-square", subPage: [] },
   { name: "monitor", label: "Monitoring", icon: "mdi:monitor-dashboard", subPage: [] },
   { name: "reports", label: "Reports", icon: "mdi:clipboard-text-outline", subPage: [] },
@@ -65,31 +61,24 @@ const items = ref<MenuItem[]>([
     to: "/leak-localization",
     icon: "mdi:pipe-leak",
   },
-
   {
     name: "dynamic",
     label: "Dynamic",
     icon: "mdi:folder-outline",
     subPage: [{ name: "auto-page3", label: "Auto Dynamic Page3", to: "/dynamic/page3" }],
   },
-
-  // ✅ “marah” now includes logout as special action
   {
     name: "marah",
     label: "marah",
     icon: "mdi:account",
-    subPage: [
-      { name: "logout", label: "Logout", to: "/logout" }, // handled manually
-    ],
+    subPage: [{ name: "logout", label: "Logout", to: "/logout" }],
   },
-
   { name: "settings", label: "Settings", to: "/settings", icon: "mdi:cog" },
   { name: "faq", label: "FAQ", to: "/faq", icon: "akar-icons:chat-question" },
 ]);
 
 const collapsed = ref(false);
 
-// ✅ Central logout function
 const handleLogout = () => {
   auth.logout();
 };
@@ -97,13 +86,11 @@ const handleLogout = () => {
 
 <template>
   <aside
-    :class="[
-      'h-screen flex flex-col bg-white border-r border-gray-200',
-      collapsed ? 'w-[78px]' : 'w-[320px]',
-    ]"
+    class="bg-white border-r border-gray-200 font-sans text-[15px] text-gray-800 flex flex-col justify-between transition-all duration-300 ease-in-out"
+    :class="[collapsed ? 'w-20' : 'w-64']"
   >
     <!-- Header -->
-    <div class="flex items-center gap-3 px-4 py-3">
+    <div class="flex items-center justify-between px-4 py-3">
       <img src="/flowless.png" alt="flowless" class="h-7 w-7" />
       <span v-if="!collapsed" class="text-2xl font-semibold text-[#1f6fb6]">flowless</span>
       <button
@@ -117,36 +104,39 @@ const handleLogout = () => {
 
     <div class="border-t border-gray-200 my-2" />
 
-    <!-- Menu list -->
-    <nav class="overflow-y-auto px-3 pb-4 flex-1">
-      <ul class="space-y-1">
-        <li v-for="item in items" :key="item.name">
-          <!-- 👇 Pass logout handler down -->
+    <!-- Menu -->
+    <nav class="flex-1 overflow-y-auto px-2 pb-4">
+      <ul class="space-y-[4px]">
+        <li
+          v-for="item in items"
+          :key="item.name"
+          class="bg-white transition-all duration-200 rounded-md"
+          :class="{ 'justify-center': collapsed }"
+        >
           <SubMenu :item="item" :collapsed="collapsed" @logout="handleLogout" />
         </li>
       </ul>
     </nav>
-    <!-- Footer -->
-    <div class="mt-auto px-4 py-3 border-gray-200 bg-white flex items-center justify-between">
-      <div
-        class="flex items-center gap-3 overflow-hidden transition-all"
-        :class="{ 'justify-center': collapsed }"
-      >
-        <!-- Avatar -->
-        <div
-          class="h-10 w-10 rounded-full bg-[#e9f1fb] grid place-items-center text-[#2d6bbb] font-semibold flex-shrink-0"
-        >
-          FR
-        </div>
 
-        <!-- Text (hide when collapsed) -->
-        <div v-if="!collapsed" class="flex flex-col">
-          <div class="font-semibold">Front end</div>
-          <div class="text-sm text-gray-500">Front end</div>
-        </div>
+    <!-- Footer -->
+    <div
+      class="px-4 py-3 border-t border-gray-200 bg-white flex items-center justify-between transition-all duration-300"
+      :class="{ 'justify-center': collapsed }"
+    >
+      <!-- Avatar -->
+      <div
+        class="h-10 w-10 rounded-full bg-[#e9f1fb] grid place-items-center text-[#2d6bbb] font-semibold"
+      >
+        FR
       </div>
 
-      <!-- Logout icon -->
+      <!-- User Info -->
+      <div v-if="!collapsed" class="flex flex-col ml-3">
+        <div class="font-semibold leading-tight">Front end</div>
+        <div class="text-sm text-gray-500 leading-tight">Front end</div>
+      </div>
+
+      <!-- Logout Icon -->
       <button
         @click.stop="auth.logout()"
         title="Logout"

@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import Template from "../components/Template.vue";
+import DataTable from "../components/DataTable.vue";
 </script>
 
 <template>
-  <Template pageTitle="Dashboard">
-    <!-- Dashboard content here -->
-    <div class="p-4 bg-white rounded-lg shadow">
-      <p class="text-gray-700">Welcome to the Dashboard page 🚀</p>
-    </div>
-  </Template>
+  <main class="p-8 bg-gray-50 min-h-screen">
+    <h1 class="text-2xl font-bold text-[#1f6fb6] mb-4">Water Demand Table</h1>
+    <DataTable />
+  </main>
 </template>

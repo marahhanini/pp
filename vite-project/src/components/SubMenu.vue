@@ -28,12 +28,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="group relative" :class="[{ 'bg-gray-50': isActive }]">
+  <div class="group relative bg-white" :class="[{ 'text-[#1f6fb6] font-medium': isActive }]">
     <!-- Direct route (no subpages) -->
     <RouterLink
       v-if="item.to && !item.subPage?.length"
       :to="item.to"
-      class="flex items-center gap-3 rounded-md px-4 py-3 hover:bg-gray-50 transition-colors"
+      class="flex items-center gap-3 rounded-md px-4 py-3 hover:bg-gray-100 transition-colors"
       :class="[{ 'font-medium text-[#1f6fb6]': isActive }]"
     >
       <Icon
@@ -48,7 +48,7 @@ onMounted(() => {
     <button
       v-else
       type="button"
-      class="flex w-full items-center gap-3 rounded-md px-4 py-3 hover:bg-gray-50 transition-colors"
+      class="flex w-full items-center gap-3 rounded-md px-4 py-3 bg-white hover:bg-gray-100 transition-colors appearance-none border-0 shadow-none focus:outline-none focus:ring-0"
       @click="open = !open"
     >
       <Icon
@@ -72,7 +72,7 @@ onMounted(() => {
           <button
             v-if="s.to === '/logout'"
             @click="auth.logout()"
-            class="block w-full text-left rounded px-3 py-2 hover:bg-gray-50 text-[#1f6fb6]"
+            class="block w-full text-left rounded px-3 py-2 hover:bg-gray-100 text-[#1f6fb6]"
           >
             {{ s.label }}
           </button>
@@ -81,7 +81,7 @@ onMounted(() => {
           <RouterLink
             v-else
             :to="s.to"
-            class="flex items-center gap-2 rounded px-2 py-2 hover:bg-gray-50 transition-colors"
+            class="flex items-center gap-2 rounded px-2 py-2 hover:bg-gray-100 transition-colors"
             :class="[{ 'text-[#1f6fb6] font-medium': route.path === s.to }]"
           >
             <Icon
@@ -108,14 +108,14 @@ onMounted(() => {
           <button
             v-if="s.to === '/logout'"
             @click="auth.logout()"
-            class="block w-full text-left rounded px-3 py-2 hover:bg-gray-50 text-[#1f6fb6]"
+            class="block w-full text-left rounded px-3 py-2 hover:bg-gray-100 text-[#1f6fb6]"
           >
             {{ s.label }}
           </button>
           <RouterLink
             v-else
             :to="s.to"
-            class="block rounded px-2 py-2 hover:bg-gray-50"
+            class="block rounded px-2 py-2 hover:bg-gray-100"
             :class="[{ 'text-[#1f6fb6] font-medium': route.path === s.to }]"
           >
             {{ s.label }}

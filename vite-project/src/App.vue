@@ -13,9 +13,9 @@ const isLogin = computed(() => route.path === "/login");
   <RouterView v-if="isLogin" />
 
   <!-- Else: show app layout with sidebar -->
-  <div v-else class="min-h-screen flex bg-[#f4f2f0]">
+  <div class="flex h-screen overflow-hidden bg-gray-50">
     <Sidebar />
-    <main class="flex-1 min-h-screen overflow-auto">
+    <main class="flex-1 overflow-y-auto p-6 bg-gray-50">
       <RouterView />
     </main>
   </div>

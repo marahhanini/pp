@@ -4,6 +4,8 @@ import Dashboard from "./pages/Dashboard.vue";
 import EpanetDefault from "./pages/EpanetDefault.vue";
 import EpanetDemo from "./pages/EpanetDemo.vue";
 import EpanetModel from "./pages/EpanetModel.vue";
+import NoAuth from "./pages/NoAuth.vue";
+import NotFound from "./pages/NotFound.vue";
 import WaterQuality from "./pages/WaterQuality.vue";
 import Pumps from "./pages/pumps.vue";
 import Valves from "./pages/valves.vue";
@@ -29,6 +31,8 @@ const router = createRouter({
     { path: "/epanet/default", component: EpanetDefault },
     { path: "/control/pumps", component: Pumps },
     { path: "/control/valves", component: Valves },
+    { path: "/no-auth", component: NoAuth },
+    { path: "/:pathMatch(.*)*", component: NotFound },
   ],
 });
 
