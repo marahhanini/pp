@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import Header from "./Header.vue";
-
-defineProps<{
-  pageTitle: string;
-}>();
+const props = defineProps<{ pageTitle?: string }>();
 </script>
 
 <template>
-  <div class="flex flex-col h-screen">
-    <!-- Header -->
-    <Header :pageTitle="pageTitle" />
+  <div class="w-full max-w-none">
+    <!-- Title row -->
+    <div class="flex items-center gap-3 mb-4 md:mb-6">
+      <!-- EXACT look: big, heavy, blue -->
+      <h1 class="font-extrabold leading-tight text-[#1f6fb6] text-[20px] md:text-[25px]">
+        {{ pageTitle }}
+      </h1>
 
-    <!-- Page content -->
-    <main class="flex-1 p-6 bg-gray-50 overflow-y-auto">
-      <slot />
-    </main>
+      <!-- Right actions -->
+      <div class="ml-auto flex items-center gap-2">
+        <slot name="actions" />
+      </div>
+    </div>
+
+    <slot />
   </div>
 </template>

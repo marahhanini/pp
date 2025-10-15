@@ -1,11 +1,28 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useAuth } from "../stores/auth";
 import type { MenuItem } from "../types/menu";
 import SubMenu from "./SubMenu.vue";
 
+const router = useRouter();
 const auth = useAuth();
+
+const emit = defineEmits(["closeSidebar", "toggleCollapse"]);
+const props = defineProps<{ collapsed: boolean }>();
+const isMobile = ref(false);
+const onNavigate = () => {
+  if (isMobile.value) {
+    // let RouterLink start navigation first; close the drawer right after
+    setTimeout(() => emit("closeSidebar"), 0);
+  }
+};
+
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 1024;
+};
+const isCollapsed = computed(() => props.collapsed && !isMobile.value);
 
 const items = ref<MenuItem[]>([
   { name: "dashboard", label: "Dashboard", to: "/", icon: "mdi:view-dashboard-outline" },
@@ -14,6 +31,7 @@ const items = ref<MenuItem[]>([
     name: "control",
     label: "Control center",
     icon: "mdi:tune-vertical",
+    to: "/control", // ✅ allows navigation when clicked
     subPage: [
       { name: "pumps", label: "Pumps", to: "/control/pumps" },
       { name: "valves", label: "Valves", to: "/control/valves" },
@@ -23,6 +41,7 @@ const items = ref<MenuItem[]>([
     name: "epanet",
     label: "Epanet Demo",
     icon: "mdi:map-outline",
+    to: "/epanet",
     subPage: [
       { name: "ep-home", label: "Epanet Demo", to: "/epanet" },
       { name: "ep-model", label: "Model View", to: "/epanet/model" },
@@ -33,14 +52,15 @@ const items = ref<MenuItem[]>([
     name: "alerts",
     label: "Alerts",
     icon: "mdi:alert-octagon-outline",
+    to: "/alerts",
     subPage: [
       { name: "new", label: "New", to: "/alerts/new" },
       { name: "history", label: "History", to: "/alerts/history" },
     ],
   },
-  { name: "zones", label: "Zones", icon: "bx:shape-square", subPage: [] },
-  { name: "monitor", label: "Monitoring", icon: "mdi:monitor-dashboard", subPage: [] },
-  { name: "reports", label: "Reports", icon: "mdi:clipboard-text-outline", subPage: [] },
+  { name: "zones", label: "Zones", icon: "bx:shape-square", to: "/zones" },
+  { name: "monitor", label: "Monitoring", icon: "mdi:monitor-dashboard", to: "/monitoring" },
+  { name: "reports", label: "Reports", icon: "mdi:clipboard-text-outline", to: "/reports" },
   { name: "losses", label: "Losses", icon: "mdi:water-percent", to: "/losses" },
   { name: "devices", label: "Devices", icon: "mdi:radiobox-marked", to: "/devices" },
   { name: "predictions", label: "Predictions", to: "/predictions", icon: "mdi:chart-line" },
@@ -77,66 +97,83 @@ const items = ref<MenuItem[]>([
   { name: "faq", label: "FAQ", to: "/faq", icon: "akar-icons:chat-question" },
 ]);
 
-const collapsed = ref(false);
+onMounted(() => {
+  handleResize();
+  window.addEventListener("resize", handleResize);
+});
+onUnmounted(() => {
+  window.removeEventListener("resize", handleResize);
+});
 
-const handleLogout = () => {
-  auth.logout();
-};
+const handleLogout = () => auth.logout();
 </script>
 
 <template>
-  <aside
-    class="bg-white border-r border-gray-200 font-sans text-[15px] text-gray-800 flex flex-col justify-between transition-all duration-300 ease-in-out"
-    :class="[collapsed ? 'w-20' : 'w-64']"
-  >
-    <!-- Header -->
+  <div class="sidebar font-sans text-[15px] text-gray-800 flex flex-col h-full overflow-hidden">
+    <!-- ✅ Header (aligned correctly) -->
     <div class="flex items-center justify-between px-4 py-3">
-      <img src="/flowless.png" alt="flowless" class="h-7 w-7" />
-      <span v-if="!collapsed" class="text-2xl font-semibold text-[#1f6fb6]">flowless</span>
+      <!-- Brand always visible; text only when not collapsed -->
+      <div class="flex items-center gap-2">
+        <img src="/flowless.png" alt="flowless" class="h-8 w-8 md:h-9 md:w-9 shrink-0" />
+        <span
+          v-show="!isCollapsed"
+          class="hidden md:inline text-[22px] font-semibold text-[#1f6fb6] tracking-tight"
+        >
+          flowless
+        </span>
+      </div>
+
+      <!-- Desktop collapse chevron -->
       <button
+        v-if="!isMobile"
         class="ml-auto text-gray-500 hover:text-gray-700"
-        @click="collapsed = !collapsed"
-        :title="collapsed ? 'Expand' : 'Collapse'"
+        @click="$emit('toggleCollapse')"
+        :title="isCollapsed ? 'Expand' : 'Collapse'"
       >
-        <span class="text-xl">{{ collapsed ? "»" : "«" }}</span>
+        <span class="text-xl">{{ isCollapsed ? "»" : "«" }}</span>
+      </button>
+
+      <!-- Mobile close button -->
+      <button
+        v-else
+        @click="$emit('closeSidebar')"
+        class="text-gray-500 hover:text-gray-700 text-xl"
+        title="Close"
+      >
+        <Icon icon="mdi:close" class="w-6 h-6" />
       </button>
     </div>
 
-    <div class="border-t border-gray-200 my-2" />
-
-    <!-- Menu -->
-    <nav class="flex-1 overflow-y-auto px-2 pb-4">
+    <!-- ✅ Menu -->
+    <nav class="min-h-0 grow overflow-y-auto px-3 py-4">
       <ul class="space-y-[4px]">
         <li
           v-for="item in items"
           :key="item.name"
-          class="bg-white transition-all duration-200 rounded-md"
-          :class="{ 'justify-center': collapsed }"
+          class="bg-white hover:bg-gray-50 transition-all duration-200 rounded-md cursor-pointer"
+          :class="{ 'justify-center': isCollapsed }"
         >
-          <SubMenu :item="item" :collapsed="collapsed" @logout="handleLogout" />
+          <SubMenu :item="item" :collapsed="isCollapsed" @navigate="onNavigate" />
         </li>
       </ul>
     </nav>
 
-    <!-- Footer -->
+    <!-- ✅ Footer -->
     <div
       class="px-4 py-3 border-t border-gray-200 bg-white flex items-center justify-between transition-all duration-300"
-      :class="{ 'justify-center': collapsed }"
+      :class="{ 'justify-center': isCollapsed }"
     >
-      <!-- Avatar -->
       <div
         class="h-10 w-10 rounded-full bg-[#e9f1fb] grid place-items-center text-[#2d6bbb] font-semibold"
       >
         FR
       </div>
 
-      <!-- User Info -->
-      <div v-if="!collapsed" class="flex flex-col ml-3">
+      <div v-if="!isCollapsed" class="flex flex-col ml-3">
         <div class="font-semibold leading-tight">Front end</div>
         <div class="text-sm text-gray-500 leading-tight">Front end</div>
       </div>
 
-      <!-- Logout Icon -->
       <button
         @click.stop="auth.logout()"
         title="Logout"
@@ -145,5 +182,18 @@ const handleLogout = () => {
         <Icon icon="mdi:logout" class="w-5 h-5" />
       </button>
     </div>
-  </aside>
+  </div>
 </template>
+
+<style scoped>
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #d3d3d3;
+  border-radius: 4px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: #bfbfbf;
+}
+</style>
