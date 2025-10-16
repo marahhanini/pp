@@ -1,0 +1,14 @@
+{
+  "load-data": [
+    { "id": 1, "time": "23 Oct 2022 - 2:45 PM", "label": "Zone 1 Flow", "value": 8.67 },
+    { "id": 2, "time": "23 Oct 2022 - 2:30 PM", "label": "Zone 2 Flow", "value": 9.13 },
+    { "id": 3, "time": "23 Oct 2022 - 2:15 PM", "label": "Zone 3 Flow", "value": 7.45 },
+    { "id": 4, "time": "23 Oct 2022 - 2:50 PM", "label": "Zone 4 Flow", "value": 8.45 },
+    { "id": 5, "time": "23 Oct 2022 - 4:50 PM", "label": "Zone 5 Flow", "value": 5.01 },
+    { "id": 6, "time": "23 Oct 2022 - 4:59 PM", "label": "Zone 6 Flow", "value": 2.11 },
+    { "id": 7, "time": "23 Oct 2022 - 7:50 PM", "label": "Zone 7 Flow", "value": 4.91 },
+    { "id": 8, "time": "23 Oct 2022 - 1:00 PM", "label": "Zone 8 Flow", "value": 6.12 },
+    { "id": 9, "time": "23 Oct 2022 - 9:20 PM", "label": "Zone 9 Flow", "value": 7.91 },
+    { "id": 10, "time": "23 Oct 2022 - 8:30 PM", "label": "Zone 10 Flow", "value": 3.31 }
+  ]
+}

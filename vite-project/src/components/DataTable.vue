@@ -1,34 +1,28 @@
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
 import { computed, ref } from "vue";
-import type { dataType } from "../types/data";
 
 //
 // ---------- 🗂️ 1. BASE DATA ----------
 //
+const props = defineProps<{
+  rows: { time: string; label: string; value: number | string }[];
+}>();
+
 const labels = ref(["Time", "Label", "Value"]);
-const rawData = ref<dataType[][]>(
-  Array.from({ length: 50 }, (_, i) => {
-    const hour = 14 - Math.floor(i / 4); // start from 2 PM backward
-    const minute = (45 - (i % 4) * 15 + 60) % 60; // 45, 30, 15, 0
-    const zone = (i % 5) + 1;
-
-    const formattedTime = `23 Oct 2022 - ${hour}:${minute.toString().padStart(2, "0")} PM`;
-
-    return [
-      { value: formattedTime, type: "date" },
-      { value: `Zone ${zone} Flow`, type: "string" },
-      { value: (Math.random() * 10 + 5).toFixed(2), type: "number" },
-    ];
-  })
+const formattedData = computed(() =>
+  props.rows.map((r) => [
+    { value: r.time, type: "date" },
+    { value: r.label, type: "string" },
+    { value: r.value, type: "number" },
+  ])
 );
-
 //
 // ---------- ⚙️ 2. STATE ----------
 //
 const searchTerm = ref("");
 const sortColumn = ref<number | null>(null);
-const sortDirection = ref<"asc" | "desc">("asc");
+const sortDirection = ref<"asc" | "desc" | null>(null);
 const itemsPerPage = ref(10);
 const currentPage = ref(1);
 
@@ -37,35 +31,75 @@ const currentPage = ref(1);
 //
 const filteredData = computed(() => {
   const term = searchTerm.value.toLowerCase().trim();
-  if (!term) return rawData.value;
-  return rawData.value.filter((row) =>
+  if (!term) return formattedData.value;
+  return formattedData.value.filter((row) =>
     row.some((cell) => String(cell.value).toLowerCase().includes(term))
   );
 });
 
 const sortedData = computed(() => {
-  if (sortColumn.value === null) return filteredData.value;
-  const col = sortColumn.value ?? 0;
-  const dir = sortDirection.value;
+  if (sortColumn.value === null || sortDirection.value === null) {
+    return filteredData.value;
+  }
+  const col = sortColumn.value;
+  const dir = sortDirection.value; // 'asc' | 'desc'
 
   return [...filteredData.value].sort((a, b) => {
     const valA = a[col]?.value ?? "";
     const valB = b[col]?.value ?? "";
-    if (typeof valA === "number" && typeof valB === "number") {
-      return dir === "asc" ? valA - valB : valB - valA;
-    }
+
+    // normalize numbers (if your number column is a string like "8.67")
+    const numA = typeof valA === "number" ? valA : Number(valA);
+    const numB = typeof valB === "number" ? valB : Number(valB);
+    const bothNumbers = !Number.isNaN(numA) && !Number.isNaN(numB);
+
+    if (bothNumbers) return dir === "asc" ? numA - numB : numB - numA;
     return dir === "asc"
       ? String(valA).localeCompare(String(valB))
       : String(valB).localeCompare(String(valA));
   });
 });
 
+const isAscActive = (col: number) =>
+  sortColumn.value !== col ? true : sortDirection.value !== "desc";
+
+const isDescActive = (col: number) =>
+  sortColumn.value !== col ? true : sortDirection.value !== "asc";
+// clicking ↑
+function clickAsc(col: number) {
+  if (sortColumn.value !== col) {
+    sortColumn.value = col;
+    sortDirection.value = "asc";
+    return;
+  }
+  // toggle asc -> none, none -> asc
+  sortDirection.value = sortDirection.value === "asc" ? null : "asc";
+}
+
+// clicking ↓
+function clickDesc(col: number) {
+  if (sortColumn.value !== col) {
+    sortColumn.value = col;
+    sortDirection.value = "desc";
+    return;
+  }
+  // toggle desc -> none, none -> desc
+  sortDirection.value = sortDirection.value === "desc" ? null : "desc";
+}
+
 //
 // ---------- 📄 4. PAGINATION ----------
 //
 const totalItems = computed(() => sortedData.value.length);
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPage.value));
+const hiddenCols = ref<Set<number>>(new Set());
 
+function toggleCol(col: number) {
+  const s = new Set(hiddenCols.value);
+  s.has(col) ? s.delete(col) : s.add(col);
+  hiddenCols.value = s; // reassign so Vue sees the change
+}
+const isHidden = (col: number) => hiddenCols.value.has(col);
 const paginatedData = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage.value;
   const end = start + itemsPerPage.value;
@@ -140,24 +174,69 @@ const prevPage = () => {
 
     <!-- 🧾 Table -->
     <div class="overflow-x-auto border border-gray-200 rounded-lg">
+      <!-- 🔧 Column Manager -->
+      <div class="flex items-center gap-3 mb-3 text-sm text-gray-600">
+        <span class="font-semibold text-[#1f6fb6]">Columns:</span>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="(label, colIndex) in labels"
+            :key="'toggle-' + colIndex"
+            @click="toggleCol(colIndex)"
+            class="flex items-center gap-1 px-2 py-1 border border-gray-300 rounded-md hover:bg-gray-100 transition text-xs"
+            :class="isHidden(colIndex) ? 'opacity-50 text-gray-500' : 'text-[#1f6fb6]'"
+          >
+            <Icon
+              :icon="isHidden(colIndex) ? 'mdi:eye-off-outline' : 'mdi:eye-outline'"
+              class="w-4 h-4"
+            />
+            <span>{{ label }}</span>
+          </button>
+
+          <!-- Optional: Reset all -->
+          <button
+            @click="hiddenCols.clear()"
+            class="flex items-center gap-1 px-2 py-1 border border-[#1f6fb6] text-[#1f6fb6] rounded-md hover:bg-[#1f6fb610] transition text-xs"
+            title="Show all columns"
+          >
+            <Icon icon="mdi:restore" class="w-4 h-4" />
+            <span>Show all</span>
+          </button>
+        </div>
+      </div>
+
       <table class="min-w-full text-sm border-collapse">
-        <thead class="bg-gray-50 text-gray-600 font-medium">
+        <thead>
           <tr>
             <th class="px-4 py-2 border-b border-gray-200 text-left">#</th>
-            <th
-              v-for="(label, colIndex) in labels"
-              :key="colIndex"
-              @click="handleSort(colIndex)"
-              class="px-4 py-2 border-b border-gray-200 text-left cursor-pointer select-none"
-            >
-              <div class="flex items-center gap-1">
-                <span class="text-[#1f6fb6] font-semibold">{{ label }}</span>
-                <div class="flex flex-col text-gray-400 text-[10px] leading-none">
-                  <Icon icon="mdi:arrow-up" class="hover:text-[#1f6fb6]" />
-                  <Icon icon="mdi:arrow-down" class="hover:text-[#1f6fb6]" />
+            <template v-for="(label, colIndex) in labels" :key="colIndex">
+              <th
+                v-if="!isHidden(colIndex)"
+                class="px-4 py-2 border-b border-gray-200 text-left select-none"
+              >
+                <div class="flex items-center gap-2">
+                  <span class="text-[#1f6fb6] font-semibold">{{ label }}</span>
+
+                  <div class="flex flex-col text-[12px] leading-none">
+                    <button
+                      class="grid place-items-center"
+                      :class="isAscActive(colIndex) ? 'text-[#1f6fb6]' : 'text-gray-300'"
+                      title="Sort ascending"
+                      @click="clickAsc(colIndex)"
+                    >
+                      <Icon icon="mdi:arrow-up" class="w-4 h-4" />
+                    </button>
+                    <button
+                      class="grid place-items-center"
+                      :class="isDescActive(colIndex) ? 'text-[#1f6fb6]' : 'text-gray-300'"
+                      title="Sort descending"
+                      @click="clickDesc(colIndex)"
+                    >
+                      <Icon icon="mdi:arrow-down" class="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </th>
+              </th>
+            </template>
           </tr>
         </thead>
 
@@ -170,8 +249,18 @@ const prevPage = () => {
             <td class="px-4 py-2 border-gray-100">
               <input type="checkbox" class="accent-[#1f6fb6] cursor-pointer" />
             </td>
-            <td v-for="(cell, colIndex) in row" :key="colIndex" class="px-4 py-2 whitespace-nowrap">
-              {{ cell.value }}
+
+            <template v-for="(cell, cIdx) in row" :key="cIdx">
+              <td v-if="!isHidden(cIdx)" class="px-4 py-2 whitespace-nowrap">
+                {{ cell.value }}
+              </td>
+            </template>
+          </tr>
+
+          <!-- 🚫 Optional: No Data Row -->
+          <tr v-if="!paginatedData.length">
+            <td :colspan="labels.length + 1" class="text-center py-4 text-gray-400">
+              No data available.
             </td>
           </tr>
         </tbody>
@@ -193,15 +282,17 @@ const prevPage = () => {
           :disabled="currentPage === 1"
           class="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-100 transition"
         >
-          ← Prev
+          ←
         </button>
-        <span class="font-medium text-[#1f6fb6]">{{ currentPage }}</span>
+
+        <span class="font-medium text-[#1f6fb6]"> {{ currentPage }} / {{ totalPages }} </span>
+
         <button
           @click="nextPage"
           :disabled="currentPage === totalPages"
           class="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 hover:bg-gray-100 transition"
         >
-          Next →
+          →
         </button>
       </div>
     </div>

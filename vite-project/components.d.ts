@@ -15,6 +15,7 @@ declare module 'vue' {
     Header: typeof import('./src/components/Header.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     MapView: typeof import('./src/components/MapView.vue')['default']
+    MultiView: typeof import('./src/components/MultiView.vue')['default']
     Navigator: typeof import('./src/components/Navigator.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
@@ -22,5 +23,6 @@ declare module 'vue' {
     TableView: typeof import('./src/components/TableView.vue')['default']
     Template: typeof import('./src/components/Template.vue')['default']
     UserMenu: typeof import('./src/components/UserMenu.vue')['default']
+    WrapperCard: typeof import('./src/components/WrapperCard.vue')['default']
   }
 }
