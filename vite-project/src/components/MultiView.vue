@@ -4,17 +4,18 @@ import { useDataTableStore } from "../services/data-table.service";
 import ChartView from "./ChartsView.vue";
 import DataTable from "./DataTable.vue";
 
-const currentView = ref<"table" | "chart">("table");
 const dataTableStore = useDataTableStore();
+const currentView = ref<"table" | "chart">("table");
 
+// 🔄 Load data on mount from db.json via store
 onMounted(() => {
-  // Load data when component mounts
   dataTableStore.loadData();
 });
 </script>
+
 <template>
   <div>
-    <!-- Toggle -->
+    <!-- 🔘 Toggle Switch -->
     <div class="flex justify-end mb-4">
       <div class="inline-flex bg-gray-100 rounded-lg p-1 shadow-inner">
         <button
@@ -43,13 +44,23 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Content -->
+    <!-- 🧠 View Switcher -->
     <transition name="fade" mode="out-in">
-      <div v-if="currentView === 'table'" key="table">
-        <DataTable :rows="dataTableStore.data" />
+      <div v-if="dataTableStore.loading" key="loading" class="text-gray-500 text-center py-6">
+        Loading data...
       </div>
-      <div v-else key="chart">
-        <ChartView />
+
+      <div v-else-if="dataTableStore.error" key="error" class="text-red-600 text-center py-6">
+        {{ dataTableStore.error }}
+      </div>
+
+      <div v-else>
+        <div v-if="currentView === 'table'" key="table">
+          <DataTable :rows="dataTableStore.data" />
+        </div>
+        <div v-else key="chart">
+          <ChartView :rows="dataTableStore.data" />
+        </div>
       </div>
     </transition>
   </div>

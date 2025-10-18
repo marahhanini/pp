@@ -9,12 +9,16 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppHeader: typeof import('./src/components/AppHeader.vue')['default']
+    AssetDetailsPanel: typeof import('./src/components/AssetDetailsPanel.vue')['default']
+    CardMetric: typeof import('./src/components/CardMetric.vue')['default']
     ChartsView: typeof import('./src/components/ChartsView.vue')['default']
     DataTable: typeof import('./src/components/DataTable.vue')['default']
     DataView: typeof import('./src/components/DataView.vue')['default']
     Header: typeof import('./src/components/Header.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    HourlyDestinationFlowChart: typeof import('./src/components/HourlyDestinationFlowChart.vue')['default']
     MapView: typeof import('./src/components/MapView.vue')['default']
+    Modal: typeof import('./src/components/Modal.vue')['default']
     MultiView: typeof import('./src/components/MultiView.vue')['default']
     Navigator: typeof import('./src/components/Navigator.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
